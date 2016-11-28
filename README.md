@@ -1,2 +1,2 @@
-# kaggle-ecg
+# kaggle-eeg
 kaggle ecg classification with convnets
