@@ -46,26 +46,25 @@ def feature_extract(songfile_name):
                             win_length=200, hop_length=100)
                             for layer in np.split(rawdata, NCHANNELS, axis=1)],
                     axis=-1)
+
+    #check if file is all zeros
     zeros = (np.sum(np.sum(stft, axis=-1), axis=-1) == 0)
 
-    """desire_spect_len = 2580
-    C = librosa.cqt(y=y, sr=sr, hop_length=512, fmin=None,
-    n_bins=84, bins_per_octave=12, tuning=None,
-    filter_scale=1, norm=1, sparsity=0.01, real=False)
+    desire_spect_len = 2401
     # get log-power spectrogram with noise floor of -80dB
-    C = librosa.logamplitude(C**2, ref_power=np.max)
+    stft = librosa.logamplitude(stft**2, ref_power=np.max)
     # scale log-power spectrogram to positive integer value for smaller footpint
     noise_floor_db = 80
     scaling_factor = (2**16 - 1)/noise_floor_db
-    C += noise_floor_db
-    C *= scaling_factor
-    C = C.astype('uint16')
+    stft += noise_floor_db
+    stft *= scaling_factor
+    stft = stft.astype('uint16')
     # if spectral respresentation too long, crop it, otherwise, zero-pad
-    if C.shape[1] >= desire_spect_len:
-        C = C[:,0:desire_spect_len]
+    if stft.shape[1] >= desire_spect_len:
+        stft = C[:,0:desire_spect_len]
     else:
-    C = np.pad(C,((0,0),(0,desire_spect_len-C.shape[1])), 'constant')
-    """
+        stft = np.pad(C,((0,0),(0,desire_spect_len-stft.shape[1])), 'constant')
+
     return songfile_name, stft, zeros
 
 '''
@@ -156,9 +155,9 @@ def process_chunks(song_folder, save_path, overwrite = False, num_chunks=40, tra
     j=0
     for i in range(0, len(files), chunk_size):
         j+=1
-        save_name = '{}_set_cqt{}.pickle.gz'.format(train_or_test,j)
+        save_name = '{}_stft_{}.pickle.gz'.format(train_or_test,j)
         if not os.path.isfile(os.path.join(save_path,save_name)) or overwrite:
-        	save_feature_matrix(files[i:i + chunk_size],save_path + "_" + str(i))
+        	save_feature_matrix(files[i:i + chunk_size],save_name)
         else:
         	print('{} already exists. Skipping file.'.format(save_name))
 
@@ -181,9 +180,11 @@ if __name__ == "__main__":
     sc = SparkContext()
     print("Executing as main program")
     process_chunks(song_folder, save_path, overwrite = False, num_chunks=20, train_or_test="train")
-    """
+    
     name, features, zeros = feature_extract("train_1/1_461_0.mat")
     print(features.shape)
     print(zeros)
-
-    #process_chunks("train_1", "train_1_processed")
+    """
+    #arg1 = folder of the matlab files
+    #arg2 = prefix for the pickled chunks
+    process_chunks(sys.argv[1], sys.argv[2])
