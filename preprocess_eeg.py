@@ -43,10 +43,10 @@ def feature_extract(songfile_name):
     rawdata = rawfile['dataStruct'][0,0][0]
 
     stft = np.stack([librosa.stft(np.squeeze(layer), n_fft=400,
-                            win_length=200, hop_length=200)
+                            win_length=200, hop_length=100)
                             for layer in np.split(rawdata, NCHANNELS, axis=1)],
                     axis=-1)
-    zeros = (np.sum(stft, axis=-1) == 0)
+    zeros = (np.sum(np.sum(stft, axis=-1), axis=-1) == 0)
 
     """desire_spect_len = 2580
     C = librosa.cqt(y=y, sr=sr, hop_length=512, fmin=None,
@@ -182,4 +182,8 @@ if __name__ == "__main__":
     print("Executing as main program")
     process_chunks(song_folder, save_path, overwrite = False, num_chunks=20, train_or_test="train")
     """
-    process_chunks("train_1", "train_1_processed")
+    name, features, zeros = feature_extract("train_1/1_461_0.mat")
+    print(features.shape)
+    print(zeros)
+
+    #process_chunks("train_1", "train_1_processed")
