@@ -1,13 +1,13 @@
 import numpy as np
 import librosa
 import os
-import _pickle as pickle
+import pickle
 import gzip
 import sys
 # ignore deprecation warnings caused by librosa 0.4.3 cqt with numpy
 import warnings
 warnings.filterwarnings("ignore")
-
+import pdb
 import scipy.io
 import matplotlib.pyplot as plt
 
@@ -61,9 +61,9 @@ def feature_extract(songfile_name):
     stft = stft.astype('uint16')
     # if spectral respresentation too long, crop it, otherwise, zero-pad
     if stft.shape[1] >= desire_spect_len:
-        stft = C[:,0:desire_spect_len]
+        stft = stft[:,0:desire_spect_len]
     else:
-        stft = np.pad(C,((0,0),(0,desire_spect_len-stft.shape[1])), 'constant')
+        stft = np.pad(stft,((0,0),(0,desire_spect_len-stft.shape[1])), 'constant')
 
     return songfile_name, stft, zeros
 
@@ -82,8 +82,8 @@ def create_feature_matrix(song_files):
     for filename in song_files: #os.listdir(song_folder):)
         if filename.endswith(".mat"):
             try:
-                print("Processing: ", filename, end="\r")
-                name, features, zeros = feature_extract(filename)
+                print("Processing: {}".format(filename))
+		name, features, zeros = feature_extract(filename)
                 feature_matrix[name] = (features, zeros)
             except:
                 print("Exception on: ", filename)

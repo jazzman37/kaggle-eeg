@@ -1,6 +1,6 @@
 import preprocess_eeg
 
-preprocess_eeg.process_chunks("train_1", "pickled_files_1")
-preprocess_eeg.process_chunks("train_2", "pickled_files_2")
-preprocess_eeg.process_chunks("train_3", "pickled_files_3")
-preprocess_eeg.process_chunks("train_4", "pickled_files_4")
+preprocess_eeg.process_chunks("../raw_files/train_1", "../processed_files/pickled_files_1")
+preprocess_eeg.process_chunks("../raw_files/train_2", "../processed_files/pickled_files_2")
+preprocess_eeg.process_chunks("../raw_files/train_3", "../processed_files/pickled_files_3")
+
