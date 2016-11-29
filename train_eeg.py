@@ -48,32 +48,31 @@ print("")
 
 # choose which cnn to use
 # ==================================================
-cnns = {'mod':'audio_cnn_mod', 'triple':'audio_cnn_triple'}
-AudioCNN = getattr(__import__(cnns[FLAGS.cnn], fromlist=['AudioCNN']), 'AudioCNN')
+cnns = {'mod':'eeg_cnn_mod', 'triple':'audio_cnn_triple'}
+AudioCNN = getattr(__import__(cnns[FLAGS.cnn], fromlist=['EegCNN']), 'EegCNN')
 
 # Data Preparatopn
 # ==================================================
 
 # Load data
 print("Loading data...")
-train_loc = "./shs/shs_dataset_train.txt"
-path_to_pickles = "./shs/shs_train_pick_30sec"
+train_loc = "../processed_files/train_1"
+dev_loc = "../processed_files/train_1/dev"
 spect_dict = data_helpers.read_from_pickles(path_to_pickles)
 # zero-mean spect-dict
-print("Zero-meaning data...")
-spect_dict_mean = np.mean(list(spect_dict.values()),0)
-spect_dict = {k: v-spect_dict_mean for k,v in spect_dict.items()}
-print("Normalizing data...")
-spect_dict_std = np.std(list(spect_dict.values()),0)
-spect_dict = {k: v/spect_dict_std for k,v in spect_dict.items()}
+# print("Zero-meaning data...")
+# spect_dict_mean = np.mean(list(spect_dict.values()),0)
+# spect_dict = {k: v-spect_dict_mean for k,v in spect_dict.items()}
+# print("Normalizing data...")
+# spect_dict_std = np.std(list(spect_dict.values()),0)
+# spect_dict = {k: v/spect_dict_std for k,v in spect_dict.items()}
 # get cliques from dataset textfile
-cliques = data_helpers.txt_to_cliques(train_loc)
+# cliques = data_helpers.txt_to_cliques(train_loc)
 # prune cliques to make sure we're not referencing songs that weren't downloaded
-pruned_cliques = data_helpers.prune_cliques(cliques,spect_dict)
+# pruned_cliques = data_helpers.prune_cliques(cliques,spect_dict)
 
 # split train/dev set so that there are no songs from same clique overlapping sets
-# TODO: This is very crude, should use cross-validation
-train_cliques, dev_cliques = data_helpers.cliques_to_dev_train(pruned_cliques,FLAGS.dev_size)
+train_cliques, dev_cliques = data_helpers.cliques_to_dev_train(spect_dict,FLAGS.dev_size)
 x_train, y_train = data_helpers.get_labels(train_cliques)
 x_dev, y_dev = data_helpers.get_labels(dev_cliques)
 
