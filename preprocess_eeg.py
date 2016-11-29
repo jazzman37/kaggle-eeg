@@ -90,13 +90,12 @@ def create_feature_matrix(song_files):
                 exceptions.append(filename)
     return feature_matrix, exceptions
 
-def save_feature_matrix(song_folder, save_path):
-    fm, excepts = create_feature_matrix(song_folder)
+def save_feature_matrix(song_folder,save_path,save_name):
+    fm, _ = create_feature_matrix(song_folder)
     print("Processing complete, saving...")
-    fileHandle = gzip.open(save_path, "wb")
-    pickle.dump(fm, fileHandle)
+    with gzip.open(os.path.join(save_path,save_name), "wb") as fileHandle:
+        pickle.dump(fm, fileHandle)
     print("Saved.")
-    fileHandle.close()
 
 '''
 pyspark functions
@@ -157,7 +156,7 @@ def process_chunks(song_folder, save_path, overwrite = False, num_chunks=40, tra
         j+=1
         save_name = '{}_stft_{}.pickle.gz'.format(train_or_test,j)
         if not os.path.isfile(os.path.join(save_path,save_name)) or overwrite:
-        	save_feature_matrix(files[i:i + chunk_size],save_name)
+        	save_feature_matrix(files[i:i + chunk_size],save_path,save_name)
         else:
         	print('{} already exists. Skipping file.'.format(save_name))
 
