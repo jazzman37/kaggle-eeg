@@ -46,6 +46,7 @@ def feature_extract(songfile_name):
                             win_length=200, hop_length=200)
                             for layer in np.split(rawdata, NCHANNELS, axis=1)],
                     axis=-1)
+    zeros = (np.sum(stft, axis=-1) == 0)
 
     """desire_spect_len = 2580
     C = librosa.cqt(y=y, sr=sr, hop_length=512, fmin=None,
@@ -65,7 +66,7 @@ def feature_extract(songfile_name):
     else:
     C = np.pad(C,((0,0),(0,desire_spect_len-C.shape[1])), 'constant')
     """
-    return songfile_name, stft
+    return songfile_name, stft, zeros
 
 '''
 vanilla python functions
@@ -83,15 +84,15 @@ def create_feature_matrix(song_files):
         if filename.endswith(".mat"):
             try:
                 print("Processing: ", filename, end="\r")
-                name, features = feature_extract(filename)
-                feature_matrix[name] = features
+                name, features, zeros = feature_extract(filename)
+                feature_matrix[name] = (features, zeros)
             except:
                 print("Exception on: ", filename)
                 exceptions.append(filename)
     return feature_matrix, exceptions
 
 def save_feature_matrix(song_folder, save_path):
-    fm,excepts = create_feature_matrix(song_folder)
+    fm, excepts = create_feature_matrix(song_folder)
     print("Processing complete, saving...")
     fileHandle = gzip.open(save_path, "wb")
     pickle.dump(fm, fileHandle)
