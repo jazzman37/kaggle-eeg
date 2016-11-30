@@ -44,11 +44,13 @@ def read_from_pickles(path_to_pickles):
     from a directory of gzipped pickles containing the chunked data
     '''
     spect_dict = {}
+    #path_to_pickles = "/Users/Mike/Documents/kaggle-ecg/testpickle/"
     for file in os.listdir(path_to_pickles):
         if file.endswith('.pickle.gz'):
             with gzip.open(os.path.join(path_to_pickles,file),'rb') as f:
                 temp_dict = pickle.load(f, encoding='latin-1')
-            spect_dict.update(temp_dict)
+                for sample in temp_dict.keys():
+                    spect_dict[os.path.basename(sample)] = temp_dict[sample][0]
     return spect_dict
 
 
@@ -73,3 +75,6 @@ def randomly_shuffle_xy_data(x,y):
     x_shuffled = x[shuffle_indices]
     y_shuffled = y[shuffle_indices]
     return x_shuffled, y_shuffled
+
+if __name__ == "__main__":
+    read_from_pickles(".")
