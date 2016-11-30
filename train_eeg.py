@@ -57,8 +57,8 @@ AudioCNN = getattr(__import__(cnns[FLAGS.cnn], fromlist=['EegCNN']), 'EegCNN')
 # Load data
 print("Loading data...")
 train_loc = "../processed_files/train_1"
-dev_loc = "../processed_files/train_1/dev"
-spect_dict = data_helpers.read_from_pickles(path_to_pickles)
+labels_loc = "../train_and_test_data_labels_safe.csv"
+spect_dict = data_helpers.read_from_pickles(train_loc)
 # zero-mean spect-dict
 # print("Zero-meaning data...")
 # spect_dict_mean = np.mean(list(spect_dict.values()),0)
@@ -72,6 +72,7 @@ spect_dict = data_helpers.read_from_pickles(path_to_pickles)
 # pruned_cliques = data_helpers.prune_cliques(cliques,spect_dict)
 
 # split train/dev set so that there are no songs from same clique overlapping sets
+pdb.set_trace()
 train_cliques, dev_cliques = data_helpers.cliques_to_dev_train(spect_dict,FLAGS.dev_size)
 x_train, y_train = data_helpers.get_labels(train_cliques)
 x_dev, y_dev = data_helpers.get_labels(dev_cliques)

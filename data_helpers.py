@@ -48,7 +48,6 @@ def read_from_pickles(path_to_pickles):
         if file.endswith('.pickle.gz'):
             with gzip.open(os.path.join(path_to_pickles,file),'rb') as f:
                 temp_dict = pickle.load(f, encoding='latin-1')
-                temp_dict = {i[0]:i[1] for i in temp_dict}
             spect_dict.update(temp_dict)
     return spect_dict
 
