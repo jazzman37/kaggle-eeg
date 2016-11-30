@@ -9,7 +9,6 @@ import data_helpers
 import gzip
 import pickle
 import random
-import pdb
 from stat_collector import StatisticsCollector
 from tensorflow.contrib import learn
 
@@ -72,10 +71,9 @@ spect_dict = data_helpers.read_from_pickles(train_loc)
 # pruned_cliques = data_helpers.prune_cliques(cliques,spect_dict)
 
 # split train/dev set so that there are no songs from same clique overlapping sets
-pdb.set_trace()
 train_cliques, dev_cliques = data_helpers.cliques_to_dev_train(spect_dict,FLAGS.dev_size)
-x_train, y_train = data_helpers.get_labels(train_cliques)
-x_dev, y_dev = data_helpers.get_labels(dev_cliques)
+x_train, y_train = data_helpers.get_labels(labels_loc, [i for i in train_cliques.keys()])
+x_dev, y_dev = data_helpers.get_labels(labels_loc, [i for i in dev_cliques.keys()])
 
 print("Dataset Size: {:d}".format(len(y_dev) + len(y_train)))
 print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
