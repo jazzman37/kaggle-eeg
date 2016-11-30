@@ -64,7 +64,7 @@ class EegCNN(object):
         #def conv_architecture(song,name_scope):
         with tf.name_scope("eeg"), tf.device('/gpu:0'):
             # convolutional architecture for first song ('original song')
-            conv1a = conv(self, x=tf.expand_dims(self.input_eeg,-1), kx=3, ky=3, in_depth=16, num_filters=filters_per_layer[0], name='conv1a')
+            conv1a = conv(self, x=self.input_eeg, kx=3, ky=3, in_depth=16, num_filters=filters_per_layer[0], name='conv1a')
             conv1a = pool(self, conv1a, kx=2, ky=4, name='pool1a')
             # conv2a
             conv2a = conv(self, x=conv1a, kx=3, ky=3, in_depth=filters_per_layer[0], num_filters=filters_per_layer[1], name='conv2a')

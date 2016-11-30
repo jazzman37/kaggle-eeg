@@ -8,13 +8,14 @@ def get_labels(labels_loc,labels_in_data):
     # get safe and unsafe labels
     labels = itertools.islice(open(labels_loc, encoding = 'utf-8'), 1, None)
     safe_labels = [i.replace("\n","").split(",")[0:2] for i in labels if int(i.replace("\n","").split(",")[2]) == 1]
-    safe_labels = [i for i in safe_labels if i in labels_in_data]
 
     # get and flatten all combination of coversongs
     positive_examples = [i[0] for i in safe_labels if int(i[1]) == 1]
+    positive_examples = [i for i in positive_examples if i in labels_in_data]
     positive_labels = [[0,1] for _ in positive_examples]
     # generate negative examples of an equivalent length to the positive examples list
     negative_examples = [i[0] for i in safe_labels if int(i[1]) == 0]
+    negative_examples = [i for i in negative_examples if i in labels_in_data]
     negative_labels = [[1,0] for _ in negative_examples]
 
     x = positive_examples + negative_examples

@@ -11,6 +11,7 @@ import pickle
 import random
 from stat_collector import StatisticsCollector
 from tensorflow.contrib import learn
+import pdb
 
 # Parameters
 # ==================================================
