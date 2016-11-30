@@ -26,7 +26,7 @@ tf.flags.DEFINE_float("learning_rate", .0001, "Gradient descent learning rate (d
 #tf.flags.DEFINE_float("fc_layers", 1, "number of fully connected layers at output (1 or 2) (default: 1)")
 #tf.flags.DEFINE_string("activation_func", 'relu', "activation function (can be: tanh or relu) (default: relu)")
 tf.flags.DEFINE_float("l2_constraint", None, "Constraint on l2 norms of weight vectors (default: None)")
-tf.flags.DEFINE_float("dev_size", 0.05, "size of the dev batch in percent vs entire train set (default: 0.20)")
+tf.flags.DEFINE_float("dev_size", 0.5, "size of the dev batch in percent vs entire train set (default: 0.20)")
 
 # Training parameters
 tf.flags.DEFINE_integer("batch_size", 32, "Batch Size (default: 32)")
@@ -145,8 +145,7 @@ with tf.Graph().as_default():
             train_stats = StatisticsCollector()
 
             feed_dict = {
-              cnn.input_song1: tuple(spect_dict[i[0]] for i in x_batch),
-              cnn.input_song2: tuple(spect_dict[i[1]] for i in x_batch),
+              cnn.input_eeg: tuple(spect_dict[i] for i in x_batch),
               cnn.input_y: y_batch,
               cnn.dropout_keep_prob: FLAGS.dropout_factor
             }
@@ -171,15 +170,13 @@ with tf.Graph().as_default():
             of loss and accuracy to cmd line and to summary writer
             '''
             dev_stats = StatisticsCollector()
-
             dev_batches = data_helpers.batch_iter(list(zip(x_dev, y_dev)), 
                                       FLAGS.batch_size, 1)
             for dev_batch in dev_batches:
                 if len(dev_batch) > 0:
                     x_dev_batch, y_dev_batch = zip(*dev_batch)
                     feed_dict = {
-                      cnn.input_song1: tuple(spect_dict[i[0]] for i in x_dev_batch),
-                      cnn.input_song2: tuple(spect_dict[i[1]] for i in x_dev_batch),
+                      cnn.input_eeg: tuple(spect_dict[i] for i in x_dev_batch),
                       cnn.input_y: y_dev_batch,
                       cnn.dropout_keep_prob: 1.0
                     }

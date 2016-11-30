@@ -3,6 +3,7 @@ import itertools
 import gzip
 import pickle
 import os
+import pdb
 
 def get_labels(labels_loc,labels_in_data):
     # get safe and unsafe labels
@@ -26,7 +27,7 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True):
     """
     Generates a batch iterator for a dataset.
     """
-    data = np.array(data)
+    data = np.array(data, dtype=object)
     data_size = len(data)
     num_batches_per_epoch = int(data_size/batch_size) + 1
     for epoch in range(num_epochs):

@@ -61,24 +61,36 @@ class EegCNN(object):
         # Keeping track of l2 regularization loss (optional)
         l2_loss = tf.constant(0.0)
 
-        #def conv_architecture(song,name_scope):
         with tf.name_scope("eeg"), tf.device('/gpu:0'):
-            # convolutional architecture for first song ('original song')
-            conv1a = conv(self, x=self.input_eeg, kx=3, ky=3, in_depth=16, num_filters=filters_per_layer[0], name='conv1a')
+            # convolutional architecture for eeg
+            conv1a = conv(self, x=self.input_eeg, kx=3, ky=3, in_depth=16, num_filters=filters_per_layer[0]/4, name='conv1a')
+            conv1a = conv(self, x=conv1a, kx=3, ky=3, in_depth=filters_per_layer[0]/4, num_filters=filters_per_layer[0]/2, name='conv1b')
+            conv1a = conv(self, x=conv1a, kx=3, ky=3, in_depth=filters_per_layer[0]/2, num_filters=filters_per_layer[0], name='conv1c')
             conv1a = pool(self, conv1a, kx=2, ky=4, name='pool1a')
             # conv2a
-            conv2a = conv(self, x=conv1a, kx=3, ky=3, in_depth=filters_per_layer[0], num_filters=filters_per_layer[1], name='conv2a')
+            conv2a = conv(self, x=conv1a, kx=1, ky=1, in_depth=filters_per_layer[0], num_filters=filters_per_layer[0]/2, name='conv2a')
+            conv2a = conv(self, x=conv2a, kx=3, ky=1, in_depth=filters_per_layer[0]/2, num_filters=filters_per_layer[1]/2, name='conv2b')
+            conv2a = conv(self, x=conv2a, kx=1, ky=3, in_depth=filters_per_layer[1]/2, num_filters=filters_per_layer[1]/2, name='conv2c')
             conv2a = pool(self, conv2a, kx=3, ky=5, name='pool2a')
             # conv3a
-            conv3a = conv(self, x=conv2a, kx=3, ky=3, in_depth=filters_per_layer[1], num_filters=filters_per_layer[2], name='conv3a')
+            conv3a = conv(self, x=conv2a, kx=1, ky=1, in_depth=filters_per_layer[1]/2, num_filters=filters_per_layer[1]/2, name='conv3a')
+            conv3a = conv(self, x=conv3a, kx=3, ky=1, in_depth=filters_per_layer[1]/2, num_filters=filters_per_layer[2]/2, name='conv3b')
+            conv3a = conv(self, x=conv3a, kx=1, ky=3, in_depth=filters_per_layer[2]/2, num_filters=filters_per_layer[2]/2, name='conv3c')
             conv3a = pool(self, conv3a, kx=3, ky=8, name='pool3a')
             # conv4a
-            conv4a = conv(self, x=conv3a, kx=3, ky=3, in_depth=filters_per_layer[2], num_filters=filters_per_layer[3], name='conv4a')
-            conv4a = pool(self, conv4a, kx=5, ky=8, name='pool4a') # 5,8 for 30 sec; 5,17 for 1min
+            conv4a = conv(self, x=conv3a, kx=1, ky=1, in_depth=filters_per_layer[2]/2, num_filters=filters_per_layer[2]/2, name='conv4a')
+            conv4a = conv(self, x=conv4a, kx=3, ky=1, in_depth=filters_per_layer[2]/2, num_filters=filters_per_layer[3]/2, name='conv4b')
+            conv4a = conv(self, x=conv4a, kx=1, ky=3, in_depth=filters_per_layer[3]/2, num_filters=filters_per_layer[3]/2, name='conv4c')
+            conv4a = pool(self, conv4a, kx=5, ky=8, name='pool4a')
+            # conv5a
+            conv5a = conv(self, x=conv4a, kx=1, ky=1, in_depth=filters_per_layer[3]/2, num_filters=filters_per_layer[3], name='conv5a')
+            conv5a = pool(self, conv5a, kx=2, ky=2, name='pool5a')
+            conv5a = conv(self, x=conv5a, kx=1, ky=1, in_depth=filters_per_layer[3], num_filters=filters_per_layer[3], name='conv5b')
+            conv5a = pool(self, conv5a, kx=2, ky=2, name='pool5b')
+            conv5a = conv(self, x=conv5a, kx=1, ky=1, in_depth=filters_per_layer[3], num_filters=filters_per_layer[3], name='conv5c')
+            conv5a = pool(self, conv5a, kx=3, ky=4, name='pool5c')
 
-
-
-            self.song1_out = tf.reshape(conv4a, [-1, filters_per_layer[3]])
+            self.song1_out = tf.reshape(conv5a, [-1, filters_per_layer[3]])
 
         # Add dropout
         self.dropout_keep_prob = tf.placeholder(tf.float32)
