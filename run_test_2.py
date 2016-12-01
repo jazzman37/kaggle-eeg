@@ -1,12 +1,14 @@
-
+import tensorflow as tf
+import csv
+import data_helpers
+import sys
 # Parameters
 # ==================================================
-DATA_LOC = "../processed_files/test_1"
-"""TODO: Make sure it's loading params"""
+DATA_LOC = sys.argv[1]
 """TODO: Where do we have the file names? Join them and make it write to CSV"""
 # Model Hyperparameters
 #tf.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
-tf.flags.DEFINE_string("filters_per_layer", '8,8,12,16', "Number of filters per layer (default: 8,8,12,16)")
+tf.flags.DEFINE_string("filters_per_layer", '128,256,512,1024', "Number of filters per layer (default: 8,8,12,16)")
 tf.flags.DEFINE_string("cnn", "mod", "which cnn to use (default: 'reg')")
 tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularizaion lambda (default: 0.0)")
 tf.flags.DEFINE_float("dropout_factor", 1.0, "Probability of weights to keep for dropout (default: 0.5)")
@@ -44,7 +46,7 @@ AudioCNN = getattr(__import__(cnns[FLAGS.cnn], fromlist=['EegCNN']), 'EegCNN')
 
 # Load data
 print("Loading data...")
-data_loc = "../processed_files/test_1"
+data_loc = DATA_LOC
 spect_dict = data_helpers.read_from_pickles(data_loc)
 # zero-mean spect-dict
 # print("Zero-meaning data...")
@@ -58,7 +60,6 @@ spect_dict = data_helpers.read_from_pickles(data_loc)
 # prune cliques to make sure we're not referencing songs that weren't downloaded
 # pruned_cliques = data_helpers.prune_cliques(cliques,spect_dict)
 
-# split train/dev set so that there are no songs from same clique overlapping sets
 test_cliques = data_helpers.cliques_to_test(spect_dict)
 x_test, y_test = data_helpers.get_labels(labels_loc, [i for i in test_cliques.keys()])
 
@@ -116,21 +117,18 @@ with tf.Graph().as_default():
         if not os.path.exists(checkpoint_dir):
             os.makedirs(checkpoint_dir)
         saver = tf.train.Saver(tf.all_variables())
-
-        # Initialize all variables
-        sess.run(tf.initialize_all_variables())
+        saver.restore(sess, checkpoint_prefix)
 
         def test_step(x_test, y_test, writer=None):
             '''
             Predicts on full test set.
             --------------------------------
-            Since full dev set likely won't fit into memory, this function
-            splits the dev set into minibatches and returns the average
-            of loss and accuracy to cmd line and to summary writer
+            Since full test set likely won't fit into memory, this function
+            splits the test set into minibatches and writes them to csv as we go.
             '''
             dev_stats = StatisticsCollector()
             dev_batches = data_helpers.batch_iter(list(zip(x_test, y_test)),
-                                      FLAGS.batch_size, 1)
+                                      FLAGS.batch_size, 1, shuffle=False)
             for dev_batch in dev_batches:
                 if len(dev_batch) > 0:
                     x_dev_batch, y_dev_batch = zip(*dev_batch)
@@ -144,15 +142,12 @@ with tf.Graph().as_default():
                         feed_dict)
                     dev_stats.collect(accuracy, loss)
 
-                    """WRITE TO CSV - BUT WITH THE FILE NAMES TOO"""
-                    """WRITE TO CSV - BUT WITH THE FILE NAMES TOO"""
+                    filenames = [name for name in x_dev_batch]
+                    with open('predictions.csv', 'ab') as csvfile:
+                        testwriter = csv.writer(csvfile, delimiter=',')
+                        testwriter.writerows([(filenames[i], predictions[i]) for i in range(len(filenames))])
 
             time_str = datetime.datetime.now().isoformat()
-            print("Predicted {} files".format(len(dev_batches)))
-            if writer:
-                writer.add_summary(summaries, step)
-
+            print("Predicted {} files. Time: {}".format(len(dev_batches), time_str))
         # send entire test set to dev_step each eval and split into minibatches there
         test_step(x_test, y_test, writer=dev_summary_writer)
-        print("")
-        # Training loop. For each batch...
