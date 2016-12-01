@@ -68,6 +68,14 @@ def cliques_to_dev_train(cliques,percent_dev):
     dev_cliques = dict(cliques_list[-dev_len:])
     return train_cliques, dev_cliques
 
+def cliques_to_test(cliques):
+    '''
+    Makes the cliques into a test dictionary
+    '''
+    cliques_list = list(cliques.items())
+    test_cliques = dict(cliques_list)
+    return test_cliques
+
 def randomly_shuffle_xy_data(x,y):
     # Randomly shuffle data
     np.random.seed(420)
