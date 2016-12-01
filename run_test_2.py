@@ -158,17 +158,20 @@ with tf.Graph().as_default():
                       cnn.input_y: y_dev_batch,
                       cnn.dropout_keep_prob: 1.0
                     }
-                    step, predictions = sess.run(
-                        [global_step, cnn.predictions],
+                    step, predictions, probs = sess.run(
+                        [global_step, cnn.predictions, cnn.probs],
                         feed_dict)
 
                     filenames = [name for name in x_dev_batch]
                     with open('predictions.csv', 'a') as csvfile:
                         print("writing")
                         testwriter = csv.writer(csvfile, delimiter=',')
-                        testwriter.writerows([(filenames[i], predictions[i]) for i in range(len(filenames))])
+                        testwriter.writerows([(filenames[i], probs[i]) for i in range(len(filenames))])
 
             time_str = datetime.datetime.now().isoformat()
             print("Predicted {} files. Time: {}".format(len(dev_batches), time_str))
         # send entire test set to dev_step each eval and split into minibatches there
+        with open('predictions.csv', 'a') as csvfile:
+            testwriter = csv.writer(csvfile, delimiter=',')
+            testwriter.writerow(["File","Class"])
         test_step(x_test)

@@ -5,8 +5,8 @@ import pdb
 
 class EegCNN(object):
     """
-    A CNN for classifying EEG's as either preictal or non preictal. 
-    Pipelines based on simplified inception conv factorization 
+    A CNN for classifying EEG's as either preictal or non preictal.
+    Pipelines based on simplified inception conv factorization
     Uses convolutional, max-pooling and batch-norm layers followed by a binary softmax layer.
     """
     def __init__(
@@ -53,7 +53,7 @@ class EegCNN(object):
             x           : input tensor
             kx,ky       : kernel dimensions
             sx,sy       : stride dimensions
-            '''            
+            '''
             if not sx or sy: sx,sy = kx,ky
             pool = tf.nn.max_pool(x, ksize=[1, kx, ky, 1], strides=[1, sx, sy, 1], padding='SAME')
             return pool
@@ -104,6 +104,7 @@ class EegCNN(object):
                 initializer=tf.contrib.layers.xavier_initializer())
             b = tf.Variable(tf.constant(0.1, shape=[num_classes]), "b")
             self.scores = tf.nn.xw_plus_b(self.drop, W, b, name="scores")
+            self.probs = tf.nn.softmax(self.scores, name = "probs")
             self.predictions = tf.argmax(self.scores, 1, name="predictions")
 
         # Calculate L2 loss
@@ -119,4 +120,3 @@ class EegCNN(object):
         with tf.name_scope("accuracy"), tf.device('/gpu:3'):
             correct_predictions = tf.equal(self.predictions, tf.argmax(self.input_y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
-              
