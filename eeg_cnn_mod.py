@@ -6,7 +6,7 @@ import pdb
 class EegCNN(object):
     """
     A CNN for classifying EEG's as either preictal or non preictal. 
-    Pipelines based on FCN-4 from Choi et. al. 2016 https://arxiv.org/abs/1606.00298 
+    Pipelines based on simplified inception conv factorization 
     Uses convolutional, max-pooling and batch-norm layers followed by a binary softmax layer.
     """
     def __init__(
