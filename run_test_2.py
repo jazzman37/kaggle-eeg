@@ -158,8 +158,8 @@ with tf.Graph().as_default():
                       cnn.input_y: y_dev_batch,
                       cnn.dropout_keep_prob: 1.0
                     }
-                    step, predictions = sess.run(
-                        [global_step, cnn.predictions],
+                    step, predictions, probs = sess.run(
+                        [global_step, cnn.predictions, cnn.probs],
                         feed_dict)
                     dev_stats.collect(accuracy, loss)
 
@@ -167,7 +167,7 @@ with tf.Graph().as_default():
                     with open('predictions.csv', 'ab') as csvfile:
                         print("writing")
                         testwriter = csv.writer(csvfile, delimiter=',')
-                        testwriter.writerows([(filenames[i], predictions[i]) for i in range(len(filenames))])
+                        testwriter.writerows([(filenames[i], probs[i]) for i in range(len(filenames))])
 
             time_str = datetime.datetime.now().isoformat()
             print("Predicted {} files. Time: {}".format(len(dev_batches), time_str))

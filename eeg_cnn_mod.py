@@ -104,6 +104,7 @@ class EegCNN(object):
                 initializer=tf.contrib.layers.xavier_initializer())
             b = tf.Variable(tf.constant(0.1, shape=[num_classes]), "b")
             self.scores = tf.nn.xw_plus_b(self.drop, W, b, name="scores")
+            self.probs = tf.nn.softmax(self.scores, name = "probs")
             self.predictions = tf.argmax(self.scores, 1, name="predictions")
 
         # Calculate L2 loss
