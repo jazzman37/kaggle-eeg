@@ -1,11 +1,26 @@
-import tensorflow as tf
-import csv
-import data_helpers
+#! /usr/bin/env python
 import sys
+import csv
+import tensorflow as tf
+import numpy as np
+import os
+import time
+import datetime
+import data_helpers
+import gzip
+import pickle
+import random
+from stat_collector import StatisticsCollector
+from tensorflow.contrib import learn
+import pdb
 # Parameters
 # ==================================================
 DATA_LOC = sys.argv[1]
-"""TODO: Where do we have the file names? Join them and make it write to CSV"""
+
+"""Line 133ish: fix restore variables"""
+"""122ish: fix path to model"""
+
+
 # Model Hyperparameters
 #tf.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
 tf.flags.DEFINE_string("filters_per_layer", '128,256,512,1024', "Number of filters per layer (default: 8,8,12,16)")
@@ -19,7 +34,7 @@ tf.flags.DEFINE_float("l2_constraint", None, "Constraint on l2 norms of weight v
 tf.flags.DEFINE_float("dev_size", 0.1, "size of the dev batch in percent vs entire train set (default: 0.20)")
 
 # Training parameters
-tf.flags.DEFINE_integer("batch_size", 32, "Batch Size (default: 32)")
+tf.flags.DEFINE_integer("batch_size", 4, "Batch Size (default: 32)")
 tf.flags.DEFINE_integer("num_epochs", 100, "Number of training epochs (default: 100)")
 tf.flags.DEFINE_integer("evaluate_every", 400, "Evaluate model on dev set after this many steps (default: 400)")
 tf.flags.DEFINE_integer("checkpoint_every", 800, "Save model after this many steps (default: 200)")
@@ -61,9 +76,9 @@ spect_dict = data_helpers.read_from_pickles(data_loc)
 # pruned_cliques = data_helpers.prune_cliques(cliques,spect_dict)
 
 test_cliques = data_helpers.cliques_to_test(spect_dict)
-x_test, y_test = data_helpers.get_labels(labels_loc, [i for i in test_cliques.keys()])
+x_test = [i for i in test_cliques.keys()]
 
-print("Dataset Size: {:d}".format(len(y_test)))
+print("Dataset Size: {:d}".format(len(x_test)))
 
 # Training
 # ==================================================
@@ -104,12 +119,12 @@ with tf.Graph().as_default():
         timestamp = str(int(time.time()))
         print(save_flags)
         important_flags = [i for i in save_flags if 'FILTERS_PER_LAYER' in i or 'DROPOUT' in i or 'LEARNING_RATE' in i or 'L2_REG_LAMBDA' in i or 'BATCH_SIZE' in i]
-        out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", ','.join(important_flags)))
+        out_dir = os.path.abspath(os.path.join(os.path.curdir)) #, "runs") #, ','.join(important_flags)))
         print("Writing to {}\n".format(out_dir))
 
         # Train/Dev Summary Dirs
         test_summary_dir = os.path.join(out_dir, "summaries", "dev")
-        test_summary_writer = tf.train.SummaryWriter(dev_summary_dir, sess.graph)
+        # test_summary_writer = tf.train.SummaryWriter(dev_summary_dir, sess.graph)
 
         # Checkpoint directory. Tensorflow assumes this directory already exists so we need to create it
         checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
@@ -117,9 +132,10 @@ with tf.Graph().as_default():
         if not os.path.exists(checkpoint_dir):
             os.makedirs(checkpoint_dir)
         saver = tf.train.Saver(tf.all_variables())
-        saver.restore(sess, checkpoint_prefix)
+        saver.restore(sess, checkpoint_prefix+"/model-8800")
+        #tf.initialize_all_variables()
 
-        def test_step(x_test, y_test, writer=None):
+        def test_step(x_test, writer=None):
             '''
             Predicts on full test set.
             --------------------------------
@@ -127,11 +143,16 @@ with tf.Graph().as_default():
             splits the test set into minibatches and writes them to csv as we go.
             '''
             dev_stats = StatisticsCollector()
-            dev_batches = data_helpers.batch_iter(list(zip(x_test, y_test)),
+            dev_batches = data_helpers.batch_iter(list(zip(x_test, [(0,0)for i in x_test])),
                                       FLAGS.batch_size, 1, shuffle=False)
+            """
+                                                                Using a dummy value for y_test
+                                                                because it's not touched when predicting"""
             for dev_batch in dev_batches:
                 if len(dev_batch) > 0:
                     x_dev_batch, y_dev_batch = zip(*dev_batch)
+
+                    print("Feeding data")
                     feed_dict = {
                       cnn.input_eeg: tuple(spect_dict[i] for i in x_dev_batch),
                       cnn.input_y: y_dev_batch,
@@ -144,10 +165,11 @@ with tf.Graph().as_default():
 
                     filenames = [name for name in x_dev_batch]
                     with open('predictions.csv', 'ab') as csvfile:
+                        print("writing")
                         testwriter = csv.writer(csvfile, delimiter=',')
                         testwriter.writerows([(filenames[i], predictions[i]) for i in range(len(filenames))])
 
             time_str = datetime.datetime.now().isoformat()
             print("Predicted {} files. Time: {}".format(len(dev_batches), time_str))
         # send entire test set to dev_step each eval and split into minibatches there
-        test_step(x_test, y_test, writer=dev_summary_writer)
+        test_step(x_test)
