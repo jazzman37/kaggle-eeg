@@ -161,10 +161,9 @@ with tf.Graph().as_default():
                     step, predictions, probs = sess.run(
                         [global_step, cnn.predictions, cnn.probs],
                         feed_dict)
-                    dev_stats.collect(accuracy, loss)
 
                     filenames = [name for name in x_dev_batch]
-                    with open('predictions.csv', 'ab') as csvfile:
+                    with open('predictions.csv', 'a') as csvfile:
                         print("writing")
                         testwriter = csv.writer(csvfile, delimiter=',')
                         testwriter.writerows([(filenames[i], probs[i]) for i in range(len(filenames))])
