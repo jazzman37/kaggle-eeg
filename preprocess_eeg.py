@@ -47,9 +47,6 @@ def feature_extract(songfile_name):
                             for layer in np.split(rawdata, NCHANNELS, axis=1)],
                     axis=-1)
 
-    #check if file is all zeros
-    zeros = (np.sum(np.sum(stft, axis=-1), axis=-1) == 0)
-
     desire_spect_len = 2401
     # get log-power spectrogram with noise floor of -80dB
     stft = librosa.logamplitude(stft**2, ref_power=np.max)
@@ -65,7 +62,7 @@ def feature_extract(songfile_name):
     else:
         stft = np.pad(stft,((0,0),(0,desire_spect_len-stft.shape[1])), 'constant')
 
-    return songfile_name, stft, zeros
+    return songfile_name, stft
 
 '''
 vanilla python functions
@@ -83,7 +80,7 @@ def create_feature_matrix(song_files):
         if filename.endswith(".mat"):
             try:
                 print("Processing: {}".format(filename))
-		name, features, zeros = feature_extract(filename)
+                name, features, zeros = feature_extract(filename)
                 feature_matrix[name] = (features, zeros)
             except:
                 print("Exception on: ", filename)

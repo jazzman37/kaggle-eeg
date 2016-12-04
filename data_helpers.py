@@ -41,6 +41,16 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True):
             end_index = min((batch_num + 1) * batch_size, data_size)
             yield shuffled_data[start_index:end_index]
 
+def shuffle_pickles(pickle_folder, num_epochs, shuffle=True):
+    """
+    make a shuffled list of pickles num_epochs long to read from during training
+    """
+    load_order = np.array([], dtype = '<U58')
+    picks = [os.path.join(pickle_folder,i) for i in os.listdir(pickle_folder)]
+    for _ in range(num_epochs):
+        load_order = np.concatenate((load_order,np.random.permutation(picks)), axis=0)
+    return load_order
+
 def read_from_pickles(path_to_pickles):
     '''
     function that loads a dictionary of filename : cqt matrix
